@@ -1,0 +1,29 @@
+services:
+  web:
+    build: .
+    container_name: secured-python-app
+    # 1. Keep Read-Only (Crucial!)
+    read_only: true
+    
+    # 2. DROP EVERYTHING (Python doesn't need CHOWN or NET_BIND_SERVICE)
+    cap_drop:
+      - ALL
+    
+    # 3. Security Options
+    security_opt:
+      - no-new-privileges:true
+    
+    # 4. Memory-based folders (Adjusted for Python)
+    tmpfs:
+      - /tmp
+      - /app/__pycache__
+      
+    ports:
+      - "8080:8000" # Python usually runs on 8000
+      
+    # 5. Add Resource Limits (Prevents Denial of Service)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
