@@ -2,28 +2,40 @@ services:
   web:
     build: .
     container_name: secured-python-app
-    # 1. Keep Read-Only (Crucial!)
+    # 1. Prevent writing to disk
     read_only: true
     
-    # 2. DROP EVERYTHING (Python doesn't need CHOWN or NET_BIND_SERVICE)
+    # 2. Strips all kernel-level privileges
     cap_drop:
       - ALL
     
-    # 3. Security Options
+    # 3. Prevent privilege escalation
     security_opt:
       - no-new-privileges:true
     
-    # 4. Memory-based folders (Adjusted for Python)
+    # 4. Expanded memory-based folders for Nginx/Python stability
     tmpfs:
       - /tmp
+      - /run
+      - /var/cache/nginx
+      - /var/run
+      - /var/log/nginx
       - /app/__pycache__
+    
+    # 5. Network Isolation
+    networks:
+      - secure-net
       
     ports:
-      - "8080:8000" # Python usually runs on 8000
-      
-    # 5. Add Resource Limits (Prevents Denial of Service)
+      - "8080:8000"
+
+    # 6. Resource Limits
     deploy:
       resources:
         limits:
           cpus: '0.50'
           memory: 256M
+
+networks:
+  secure-net:
+    internal: true
